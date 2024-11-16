@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        #chat-container {
+            height: 400px;
+            overflow-y: scroll;
+        }
+
+        .chat-message {
+            margin-bottom: 10px;
+        }
+
+        .user-message {
+            text-align: right;
+        }
+
+        .bot-message {
+            text-align: left;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 p-6">
+    <div class="max-w-3xl mx-auto bg-white p-8 rounded-lg shadow-lg">
+        <h1 class="text-3xl font-semibold text-center mb-4">Chatbot</h1>
+
+        <div id="chat-container" class="border border-gray-300 p-4 rounded-lg bg-gray-50">
+            <!-- Chat messages will appear here -->
+        </div>
+
+        <input id="user-input" type="text" placeholder="Ask something..."
+            class="w-full p-2 mt-4 border border-gray-300 rounded-md">
+        <button id="send-btn" class="w-full p-2 mt-2 bg-blue-500 text-white rounded-md">Send</button>
+    </div>
+
+    <script>
+        document.getElementById('send-btn').addEventListener('click', async function () {
+            const query = document.getElementById('user-input').value;
+            if (!query) return;
+
+            // Show user message in chat window
+            const chatContainer = document.getElementById('chat-container');
+            const userMessage = document.createElement('div');
+            userMessage.className = 'chat-message user-message';
+            userMessage.innerHTML = `<strong>You:</strong> ${query}`;
+            chatContainer.appendChild(userMessage);
+
+            // Send query to FastAPI backend
+            const response = await fetch('http://127.0.0.1:8000/chat', {  // Changed to FastAPI URL
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ query })
+            });
+            const data = await response.json();
+
+            // Show bot response
+            const botMessage = document.createElement('div');
+            botMessage.className = 'chat-message bot-message';
+            botMessage.innerHTML = `<strong>Bot:</strong> ${data.answer}`;
+            chatContainer.appendChild(botMessage);
+
+            // Show follow-up question
+            const followUpMessage = document.createElement('div');
+            followUpMessage.className = 'chat-message bot-message';
+            followUpMessage.innerHTML = `<strong>Bot:</strong> ${data.follow_up_question}`;
+            chatContainer.appendChild(followUpMessage);
+
+            // Clear input
+            document.getElementById('user-input').value = '';
+            chatContainer.scrollTop = chatContainer.scrollHeight; // Scroll to bottom
+        });
+    </script>
+</body>
+
+</html>
